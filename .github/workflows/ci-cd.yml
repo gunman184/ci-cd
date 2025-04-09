@@ -44,10 +44,17 @@ jobs:
 
     - name: Install AWS SAM CLI
       run: |
-        curl -Lo sam-installation-script.sh https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-        unzip aws-sam-cli-linux-x86_64.zip
-        sudo ./install
-        sam --version  # Verify SAM CLI installation
+        # Install dependencies
+        sudo apt-get update
+        sudo apt-get install -y unzip curl
+
+        # Download and install AWS SAM CLI
+        curl -Lo sam-cli.zip https://github.com/aws/aws-sam-cli/releases/download/v2.0.0/aws-sam-cli-linux-x86_64.zip
+        unzip sam-cli.zip -d sam-cli
+        sudo ./sam-cli/install
+
+        # Verify SAM CLI installation
+        sam --version  # This will display the SAM CLI version
 
     - name: Build Lambda function with SAM
       run: |
