@@ -42,16 +42,13 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: 'us-east-1'
 
+    
     - name: Install AWS SAM CLI
       run: |
-        # Install dependencies
-        sudo apt-get update
-        sudo apt-get install -y unzip curl
-
-        # Download and install AWS SAM CLI
-        curl -Lo sam-cli.zip https://github.com/aws/aws-sam-cli/releases/download/v2.0.0/aws-sam-cli-linux-x86_64.zip
-        unzip sam-cli.zip -d sam-cli
-        sudo ./sam-cli/install
+        # Install the AWS SAM CLI using apt-get
+        curl -fsSL https://d1vvhvl2y92vvt.cloudfront.net/aws-sam-cli-linux-x86_64.deb -o sam-cli.deb
+        sudo dpkg -i sam-cli.deb
+        sudo apt-get install -f  # Fix any dependencies
 
         # Verify SAM CLI installation
         sam --version  # This will display the SAM CLI version
