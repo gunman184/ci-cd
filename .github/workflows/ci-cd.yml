@@ -13,7 +13,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Python 3.9 from deadsnakes repository
+    - name: Set up Python 3.9 and link to python3
       run: |
         sudo apt update
         sudo apt install -y software-properties-common
@@ -21,13 +21,18 @@ jobs:
         sudo apt update
         sudo apt install -y python3.9 python3.9-distutils python3.9-venv
 
-        # Add symlink so python3 points to python3.9
+        # Force Python 3.9 to be the default
+        sudo ln -sf /usr/bin/python3.9 /usr/bin/python
         sudo ln -sf /usr/bin/python3.9 /usr/bin/python3
 
-        # Also set pip3 to use pip3.9
-        sudo ln -sf /usr/bin/pip3 /usr/bin/pip
+        # Ensure pip is available
+        curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.9
 
+        # Check versions
         python3 --version
+        python --version
+        pip --version
+
 
 
     - name: Install dependencies
