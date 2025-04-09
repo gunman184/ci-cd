@@ -27,11 +27,12 @@ jobs:
 
         # Ensure pip is available for python3.9
         sudo python3.9 -m ensurepip --upgrade
-        sudo python3.9 -m pip install --upgrade pip
+        sudo python3.9 -m pip install --upgrade pip --ignore-installed
 
         # Check versions
         python3 --version
         pip --version
+
 
 
     - name: Install dependencies
