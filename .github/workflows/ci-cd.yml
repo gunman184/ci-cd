@@ -43,16 +43,9 @@ jobs:
         aws-region: 'us-east-1'
 
     
-    - name: Install AWS SAM CLI
+    - name: Verify AWS SAM CLI installation
       run: |
-        # Add AWS SAM CLI repository to the system
-        curl -fsSL https://dl.aws.amazon.com/aws-sam-cli/latest/linux_x86_64_package.deb -o aws-sam-cli.deb
-        
-        # Install the AWS SAM CLI
-        sudo dpkg -i aws-sam-cli.deb
-        sudo apt-get install -f  # Install missing dependencies if needed
-
-        # Verify SAM CLI installation
+        # Verify that AWS SAM CLI is already installed (GitHub runners often have it pre-installed)
         sam --version  # This will display the SAM CLI version
 
 
