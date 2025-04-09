@@ -44,7 +44,10 @@ jobs:
 
     - name: Install AWS SAM CLI
       run: |
-        brew install aws/tap/aws-sam-cli
+        curl -Lo sam-installation-script.sh https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+        unzip aws-sam-cli-linux-x86_64.zip
+        sudo ./install
+        sam --version  # Verify SAM CLI installation
 
     - name: Build Lambda function with SAM
       run: |
