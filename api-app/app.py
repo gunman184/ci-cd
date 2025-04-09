@@ -27,7 +27,7 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 200,
                 'body': json.dumps({
-                    'message': 'Visit count updated successfully',
+                    'message': 'Visit count updated successfully :)',
                     'visit_count': int(response['Attributes']['visits']['N'])
                 })
             }
