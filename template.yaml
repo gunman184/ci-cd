@@ -17,7 +17,7 @@ Resources:
       MemorySize: 128
       Timeout: 3
       Handler: app.lambda_handler
-      Runtime: python3.13
+      Runtime: python3.9
       Architectures:
         - x86_64
       EphemeralStorage:
