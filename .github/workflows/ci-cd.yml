@@ -25,14 +25,13 @@ jobs:
         sudo ln -sf /usr/bin/python3.9 /usr/bin/python
         sudo ln -sf /usr/bin/python3.9 /usr/bin/python3
 
-        # Ensure pip is available
-        curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.9
+        # Ensure pip is available for python3.9
+        sudo python3.9 -m ensurepip --upgrade
+        sudo python3.9 -m pip install --upgrade pip
 
         # Check versions
         python3 --version
-        python --version
         pip --version
-
 
 
     - name: Install dependencies
