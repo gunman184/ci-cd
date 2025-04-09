@@ -48,8 +48,10 @@ jobs:
       run: sam --version
 
     - name: Build Lambda function using SAM (in Docker container)
+      working-directory: sam-app
       run: |
-        sam build --use-container -t ./template.yaml
+        sam build --use-container
+
 
     - name: Deploy Lambda function to AWS
       run: |
