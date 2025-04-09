@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        pytest tests/integration/test_api_processing.py
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test  # Ensure deployment happens only if the tests pass
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:   
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: 'us-east-1'
+
+    - name: Install AWS SAM CLI
+      run: |
+        brew install aws/tap/aws-sam-cli
+
+    - name: Build Lambda function with SAM
+      run: |
+        sam build
+
+    - name: Deploy Lambda function to AWS
+      run: |
+        sam deploy --no-confirm-changeset --capabilities CAPABILITY_IAM
