@@ -8,6 +8,148 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: An AWS Serverless Application Model template describing your function.
 Resources:
+  MyWebsite:
+    Type: AWS::S3::Bucket
+    Properties:
+      #AccessControl: PublicRead
+      WebsiteConfiguration: 
+        IndexDocument: index.html
+      BucketName: my-fantastic-website1128
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true                      
+        IgnorePublicAcls: true
+        BlockPublicPolicy: false              
+        RestrictPublicBuckets: false
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicRead
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref MyWebsite
+                - "/*"
+      Bucket: !Ref MyWebsite
+  
+  
+  # DevOpsWithMarcelHostedZone:
+  #   Type: AWS::Route53::HostedZone
+  #   Properties:
+  #     Name: devopswithmarcel1128.org
+
+ 
+
+###################
+  # RootDomainRecord:
+  #   Type: AWS::Route53::RecordSet
+  #   DependsOn: DevOpsWithMarcelHostedZone
+  #   Properties:
+  #     HostedZoneName: devopswithmarcel1128.org.
+  #     Name: devopswithmarcel1128.org.
+  #     Type: A
+  #     AliasTarget:
+  #       DNSName: d2sohj8jycsthk.cloudfront.net
+  #       HostedZoneId: Z2FDTNDATAQYW2 # S3 Website hosting zone ID for us-east-1
+
+
+#####################
+
+
+  # DevOpsWithMarcelCertificate:
+  #   Type: AWS::CertificateManager::Certificate
+  #   DependsOn: DevOpsWithMarcelHostedZone
+  #   Properties:
+  #     DomainName: devopswithmarcel1128.org
+  #     SubjectAlternativeNames:
+  #       - "*.devopswithmarcel1128.org"
+  #     ValidationMethod: DNS
+  #     DomainValidationOptions:
+  #       - DomainName: devopswithmarcel1128.org
+  #         HostedZoneId: !GetAtt DevOpsWithMarcelHostedZone.Id
+
+  MyRoute53Record:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      HostedZoneId: Z0657015HD2ARN4XSDD6
+      RecordSets: 
+        - Name: devopswithmarcel.org
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt MyCloudFrontDistribution.DomainName
+
+
+  MyCloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+            ViewerProtocolPolicy: allow-all
+            TargetOriginId: my-fantastic-website1128.s3-website-us-east-1.amazonaws.com
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
+            ForwardedValues:
+              QueryString: false
+        Origins:
+        - DomainName: my-fantastic-website1128.s3-website-us-east-1.amazonaws.com
+          Id: my-fantastic-website1128.s3-website-us-east-1.amazonaws.com
+          CustomOriginConfig:
+            OriginProtocolPolicy: match-viewer
+        Enabled: "true"
+        DefaultRootObject: index.html
+        # Aliases:
+        # - devopswithmarcel1128.org
+        # - www.devopswithmarcel1128.org
+        
+
+
+
+
+ 
+  # MyCloudFrontDistribution:
+  #   Type: AWS::CloudFront::Distribution
+  #   DependsOn: MyWebsite
+  #   Properties: 
+  #     DistributionConfig:
+  #       Enabled: true
+  #       Aliases:
+  #         - www.devopswithmarcel1128.org
+  #         - devopswithmarcel1128.org
+  #       DefaultRootObject: index.html
+  #       Origins:
+  #         - Id: WebsiteOrigin
+  #           DomainName: my-fantastic-website1128.s3-website-us-east-1.amazonaws.com
+  #           CustomOriginConfig:
+  #             HTTPPort: 80
+  #             HTTPSPort: 443
+  #             OriginProtocolPolicy: http-only
+  #       DefaultCacheBehavior:
+  #         TargetOriginId: my-fantastic-website1128.s3-website-us-east-1.amazonaws.com
+  #         ViewerProtocolPolicy: redirect-to-https
+  #         AllowedMethods:
+  #           - GET
+  #           - HEAD
+  #         CachedMethods:
+  #           - GET
+  #           - HEAD
+  #         ForwardedValues:
+  #           QueryString: false
+  #           Cookies:
+  #             Forward: none
+
+
+
+
+##############
   apiprocessing:
     Type: AWS::Serverless::Function
     Properties:
