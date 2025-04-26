@@ -8,19 +8,21 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: An AWS Serverless Application Model template describing your function.
 Resources:
+  #S3 Bucket deployment
   MyWebsite:
     Type: AWS::S3::Bucket
     Properties:
       #AccessControl: PublicRead
       WebsiteConfiguration: 
         IndexDocument: index.html
-      BucketName: my-fantastic-website1128
+      BucketName: devopswithmarcel.org 
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true                      
         IgnorePublicAcls: true
         BlockPublicPolicy: false              
         RestrictPublicBuckets: false
 
+  #S3 Bucket Policy 
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -38,8 +40,11 @@ Resources:
                 - !Ref MyWebsite
                 - "/*"
       Bucket: !Ref MyWebsite
-  
-  
+
+###################
+
+  #Hosted Zone not needed
+
   # DevOpsWithMarcelHostedZone:
   #   Type: AWS::Route53::HostedZone
   #   Properties:
@@ -48,12 +53,13 @@ Resources:
  
 
 ###################
+  #Route 53 deployment with type A, with an existing hostedzone.
   # RootDomainRecord:
   #   Type: AWS::Route53::RecordSet
   #   DependsOn: DevOpsWithMarcelHostedZone
-  #   Properties:
-  #     HostedZoneName: devopswithmarcel1128.org.
-  #     Name: devopswithmarcel1128.org.
+  #   Properties:   
+  #     HostedZoneName: devopswithmarcel.org.
+  #     Name: devopswithmarcel.org.
   #     Type: A
   #     AliasTarget:
   #       DNSName: d2sohj8jycsthk.cloudfront.net
@@ -86,29 +92,41 @@ Resources:
             HostedZoneId: Z2FDTNDATAQYW2
             DNSName: !GetAtt MyCloudFrontDistribution.DomainName
 
+  MyCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: devopswithmarcel.org
+      SubjectAlternativeNames:
+        - "*.devopswithmarcel.org"
+      ValidationMethod: DNS
 
+  #CloudFront Distribution deployment to S3 bucket: devsopswithmarcel.org
   MyCloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         DefaultCacheBehavior:
-            ViewerProtocolPolicy: allow-all
-            TargetOriginId: my-fantastic-website1128.s3-website-us-east-1.amazonaws.com
+            ViewerProtocolPolicy: redirect-to-https
+            TargetOriginId: devopswithmarcel.org.s3-website-us-east-1.amazonaws.com #my-fantastic-website1128.s3-website-us-east-1.amazonaws.com
             DefaultTTL: 0
             MinTTL: 0
             MaxTTL: 0
             ForwardedValues:
               QueryString: false
         Origins:
-        - DomainName: my-fantastic-website1128.s3-website-us-east-1.amazonaws.com
-          Id: my-fantastic-website1128.s3-website-us-east-1.amazonaws.com
+        - DomainName: devopswithmarcel.org.s3-website-us-east-1.amazonaws.com
+          Id: devopswithmarcel.org.s3-website-us-east-1.amazonaws.com
           CustomOriginConfig:
-            OriginProtocolPolicy: match-viewer
+            OriginProtocolPolicy: http-only
         Enabled: "true"
         DefaultRootObject: index.html
-        # Aliases:
-        # - devopswithmarcel1128.org
-        # - www.devopswithmarcel1128.org
+        ViewerCertificate:
+          AcmCertificateArn: !Ref MyCertificate
+          SslSupportMethod: sni-only
+        Aliases:
+          - www.devopswithmarcel.org
+          - devopswithmarcel.org
+        
         
 
 
