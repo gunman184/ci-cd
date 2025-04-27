@@ -9,7 +9,8 @@ dynamodb = boto3.client('dynamodb')
 table_name = 'WebsiteVisits'
 def lambda_handler(event, context):
     try:
-        http_method = event['requestContext']['http']['method']
+        #http_method = event['requestContext']['http']['method']
+        http_method = event['httpMethod']
         
         if http_method == 'POST':
             # Increment visit count

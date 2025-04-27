@@ -15,7 +15,7 @@ Resources:
       #AccessControl: PublicRead
       WebsiteConfiguration: 
         IndexDocument: index.html
-      BucketName: devopswithmarcel.org 
+      BucketName: devopswithmarcel.org
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true                      
         IgnorePublicAcls: true
@@ -57,7 +57,7 @@ Resources:
   # RootDomainRecord:
   #   Type: AWS::Route53::RecordSet
   #   DependsOn: DevOpsWithMarcelHostedZone
-  #   Properties:   
+  #   Properties:
   #     HostedZoneName: devopswithmarcel.org.
   #     Name: devopswithmarcel.org.
   #     Type: A
@@ -164,7 +164,93 @@ Resources:
   #           Cookies:
   #             Forward: none
 
+  WebsiteVisitsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: WebsiteVisits
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
 
+##############
+  # VisitsCountAPI:
+  #   Type: AWS::Serverless::Api
+  #   Properties:
+  #     Name: VisitsCountAPI
+  #     StageName: production
+  #     Cors: "'*'"  # Optional: allows CORS for testing
+  #     DefinitionBody:
+  #       openapi: 3.0.1
+  #       info:
+  #         title: VisitsCountAPI
+  #         version: '1.0'
+  #       paths:
+  #         /api_processing:
+  #           get:
+  #             x-amazon-apigateway-integration:
+  #               uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+  #               httpMethod: POST
+  #               type: aws_proxy
+  #           post:
+  #             x-amazon-apigateway-integration:
+  #               uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+  #               httpMethod: POST
+  #               type: aws_proxy
+
+  VisitsCountAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: VisitsCountAPI
+      StageName: prod
+      Cors: # CORS config (important for OPTIONS)
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      DefinitionBody:
+        swagger: "2.0"
+        info:
+          title: "VisitsCountAPI"
+          version: "1.0"
+        paths:
+          /api_processing:
+            get:
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+                httpMethod: POST # YES, for Lambda Proxy, APIGateway uses POST always internally!
+                type: aws_proxy
+            post:
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+            options:
+              responses:
+                "200":
+                  description: "200 response for CORS"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
+                    Access-Control-Allow-Methods:
+                      type: string
+                    Access-Control-Allow-Headers:
+                      type: string
+              x-amazon-apigateway-integration:
+                type: mock
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
 
 
 ##############
@@ -178,6 +264,13 @@ Resources:
       Timeout: 3
       Handler: app.lambda_handler
       Runtime: python3.9
+      Events: 
+         ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref VisitsCountAPI
+            Path: /api_processing
+            Method: ANY
       Architectures:
         - x86_64
       EphemeralStorage:
