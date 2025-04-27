@@ -1,5 +1,5 @@
 import requests
-endpoint = 'https://5rx2ovxoi9.execute-api.us-east-1.amazonaws.com/production/api_processing'
+endpoint = 'https://ij6onx27l6.execute-api.us-east-1.amazonaws.com/prod/api_processing'
 
 def test_call_endpoint():
     response = requests.get(endpoint)
