@@ -17,8 +17,8 @@ Resources:
         IndexDocument: index.html
       BucketName: devopswithmarcel.org
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: true                      
-        IgnorePublicAcls: true
+        BlockPublicAcls: false                      
+        IgnorePublicAcls: false
         BlockPublicPolicy: false              
         RestrictPublicBuckets: false
 
@@ -30,7 +30,7 @@ Resources:
         Id: MyPolicy
         Version: "2012-10-17"
         Statement:
-          - Sid: PublicRead
+          - Sid: PublicRead 
             Effect: Allow
             Principal: "*"
             Action: "s3:GetObject"
@@ -177,80 +177,178 @@ Resources:
       BillingMode: PAY_PER_REQUEST
 
 ##############
-  # VisitsCountAPI:
-  #   Type: AWS::Serverless::Api
-  #   Properties:
-  #     Name: VisitsCountAPI
-  #     StageName: production
-  #     Cors: "'*'"  # Optional: allows CORS for testing
-  #     DefinitionBody:
-  #       openapi: 3.0.1
-  #       info:
-  #         title: VisitsCountAPI
-  #         version: '1.0'
-  #       paths:
-  #         /api_processing:
-  #           get:
-  #             x-amazon-apigateway-integration:
-  #               uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
-  #               httpMethod: POST
-  #               type: aws_proxy
-  #           post:
-  #             x-amazon-apigateway-integration:
-  #               uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
-  #               httpMethod: POST
-  #               type: aws_proxy
-
   VisitsCountAPI:
     Type: AWS::Serverless::Api
     Properties:
       Name: VisitsCountAPI
       StageName: prod
-      Cors: # CORS config (important for OPTIONS)
-        AllowMethods: "'GET,POST,OPTIONS'"
-        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      Cors:
         AllowOrigin: "'*'"
+        AllowMethods: "'OPTIONS,GET,POST'"
+        AllowHeaders: "'Content-Type,Authorization'"
       DefinitionBody:
-        swagger: "2.0"
+        openapi: 3.0.1
         info:
-          title: "VisitsCountAPI"
-          version: "1.0"
+          title: VisitsCountAPI
+          version: '1.0'
         paths:
           /api_processing:
-            get:
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
-                httpMethod: POST # YES, for Lambda Proxy, APIGateway uses POST always internally!
-                type: aws_proxy
-            post:
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
-                httpMethod: POST
-                type: aws_proxy
             options:
+              summary: CORS support
               responses:
-                "200":
-                  description: "200 response for CORS"
+                '200':
+                  description: CORS OK
                   headers:
                     Access-Control-Allow-Origin:
-                      type: string
+                      schema:
+                        type: string
                     Access-Control-Allow-Methods:
-                      type: string
+                      schema:
+                        type: string
                     Access-Control-Allow-Headers:
-                      type: string
+                      schema:
+                        type: string
               x-amazon-apigateway-integration:
                 type: mock
                 requestTemplates:
                   application/json: '{"statusCode": 200}'
                 responses:
                   default:
-                    statusCode: "200"
+                    statusCode: '200'
                     responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
-                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET,POST'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
+            get:
+              summary: Get visit count
+              responses:
+                '200':
+                  description: Successful GET
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+            post:
+              summary: Increment visit count
+              responses:
+                '200':
+                  description: Successful POST
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+
+
+
+
+  # VisitsCountAPI:
+  #   Type: AWS::Serverless::Api
+  #   Properties:
+  #     Name: VisitsCountAPI
+  #     StageName: prod
+  #     Cors: # CORS config (important for OPTIONS)
+  #       AllowMethods: "'GET,POST,OPTIONS'"
+  #       AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+  #       AllowOrigin: "'*'"
+  #       paths:
+  #         /api_processing:
+  #           get:
+  #             x-amazon-apigateway-integration:
+  #               uri:
+  #                 Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+  #               httpMethod: POST # YES, for Lambda Proxy, APIGateway uses POST always internally!
+  #               type: aws_proxy
+  #           post:
+  #             x-amazon-apigateway-integration:
+  #               uri:
+  #                 Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+  #               httpMethod: POST
+  #               type: aws_proxy
+  #           options:
+  #             responses:
+  #               "200":
+  #                 description: "200 response for CORS"
+  #                 headers:
+  #                   Access-Control-Allow-Origin:
+  #                     type: string
+  #                   Access-Control-Allow-Methods:
+  #                     type: string
+  #                   Access-Control-Allow-Headers:
+  #                     type: string
+  #             x-amazon-apigateway-integration:
+  #               type: mock
+  #               requestTemplates:
+  #                 application/json: '{"statusCode": 200}'
+  #               responses:
+  #                 default:
+  #                   statusCode: "200"
+  #                   responseParameters:
+  #                     method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+  #                     method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+  #                     method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  # VisitsCountAPI:
+  #   Type: AWS::Serverless::Api
+  #   Properties:
+  #     Name: VisitsCountAPI
+  #     StageName: prod
+  #     Cors:  # Global CORS configuration for the API
+  #       AllowMethods: "'GET,POST,OPTIONS'"
+  #       AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+  #       AllowOrigin: "'*'"
+  #   Resources:
+  #     /api_processing:
+  #       Type: AWS::ApiGateway::Resource
+  #       Properties:
+  #         ParentId: !GetAtt VisitsCountAPI.RootResourceId
+  #         PathPart: api_processing
+  #     /api_processing/GET:
+  #       Type: AWS::ApiGateway::Method
+  #       Properties:
+  #         HttpMethod: GET
+  #         ResourceId: !Ref "/api_processing"
+  #         Integration:
+  #           Type: AWS_PROXY
+  #           IntegrationHttpMethod: POST
+  #           Uri: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+  #     /api_processing/POST:
+  #       Type: AWS::ApiGateway::Method
+  #       Properties:
+  #         HttpMethod: POST
+  #         ResourceId: !Ref "/api_processing"
+  #         Integration:
+  #           Type: AWS_PROXY
+  #           IntegrationHttpMethod: POST
+  #           Uri: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${apiprocessing.Arn}/invocations
+  #     /api_processing/OPTIONS:
+  #       Type: AWS::ApiGateway::Method
+  #       Properties:
+  #         HttpMethod: OPTIONS
+  #         ResourceId: !Ref "/api_processing"
+  #         Integration:
+  #           Type: MOCK
+  #           IntegrationResponses:
+  #             - StatusCode: 200
+  #               ResponseParameters:
+  #                 method.response.header.Access-Control-Allow-Origin: "'*'"
+  #                 method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+  #                 method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+  #           MethodResponses:
+  #             - StatusCode: 200
+  #               ResponseParameters:
+  #                 method.response.header.Access-Control-Allow-Origin: true
+  #                 method.response.header.Access-Control-Allow-Methods: true
+  #                 method.response.header.Access-Control-Allow-Headers: true
+
+
 
 
 ##############
@@ -264,8 +362,8 @@ Resources:
       Timeout: 3
       Handler: app.lambda_handler
       Runtime: python3.9
-      Events: 
-         ApiEvent:
+      Events:
+        ApiEvent:
           Type: Api
           Properties:
             RestApiId: !Ref VisitsCountAPI

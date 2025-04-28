@@ -26,7 +26,12 @@ def lambda_handler(event, context):
             )
             
             return {
-                'statusCode': 200,
+                'statusCode': 201,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',  # Allow any origin, update as needed for production
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',  # Allowed methods
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',  # Allowed headers
+                },
                 'body': json.dumps({
                     'message': 'Visit count updated successfully :)',
                     'visit_count': int(response['Attributes']['visits']['N'])
@@ -44,6 +49,11 @@ def lambda_handler(event, context):
                 visit_count = int(response['Item']['visits']['N'])
                 return {
                     'statusCode': 200,
+                    'headers': {
+                        'Access-Control-Allow-Origin': '*',  # Allow any origin, update as needed for production
+                        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',  # Allowed methods
+                        'Access-Control-Allow-Headers': 'Content-Type,Authorization',  # Allowed headers
+                    },
                     'body': json.dumps({'visit_count': visit_count})
                 }
             else:
@@ -63,7 +73,7 @@ def lambda_handler(event, context):
         print(f"Error: {str(e)}")
         return {
             'statusCode': 500,
-            'body': json.dumps({'message': 'Internal Server Error :3', 'error': str(e)})
+            'body': json.dumps({'message': 'Internal Server Error', 'error': str(e)})
         }
     except Exception as e:
         # Log general error
